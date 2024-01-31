@@ -100,7 +100,6 @@ void setup() {
   //M5Cardputer.Display.setTextColor(PURPLE);
   WiFi.disconnect();
   WiFi.softAPdisconnect(true);
-  WiFi.mode(WIFI_STA);
 
   M5Cardputer.Display.drawString("Conectando no Wifi.", 10, 1);
   M5Cardputer.Display.drawString("SSID: " + CFG_WIFI_SSID, 10, 15);
@@ -109,9 +108,12 @@ void setup() {
 
   // try forever but not too much
   int tm = 0;
-  while (tm++ <30 || WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     M5Cardputer.Display.print(".");
     delay(100);
+    if (M5Cardputer.Keyboard.isKeyPressed('m') || tm++ <30) {
+      break;
+    }
   }
   if (WiFi.status() == WL_CONNECTED) {
   M5Cardputer.Display.println("");
@@ -142,7 +144,14 @@ void setup() {
     M5Cardputer.Display.drawString("SSID: " + CFG_WIFI_SSID, 1, 15);
     M5Cardputer.Display.drawString("Senha: " + CFG_WIFI_PASS, 1, 32);
     M5Cardputer.Display.drawString("SSID e Senha gravados.", 1, 60);
-    delay(1000);
+    WiFi.begin(CFG_WIFI_SSID, CFG_WIFI_PASS);
+      while (WiFi.status() != WL_CONNECTED) {
+      M5Cardputer.Display.print(".");
+      delay(100);
+        if (M5Cardputer.Keyboard.isKeyPressed('m') || tm++ <30) {
+          break;
+        }
+      }
   }
 }
 
