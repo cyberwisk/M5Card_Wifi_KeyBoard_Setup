@@ -102,6 +102,7 @@ void scanAndDisplayNetworks() {
     if (numNetworks == 0) {
         M5Cardputer.Display.drawString("Nenhuma rede encontrada.", 1, 15);
     } else {
+        M5Cardputer.Display.clear();
         M5Cardputer.Display.drawString("Redes disponíveis:", 1, 1);
 
         for (int i = 0; i < numNetworks; ++i) {
@@ -149,30 +150,9 @@ void setup() {
     connectToWiFi();
 }
 
-
-
-/*
-void setup() {
-    auto cfg = M5.config();
-    M5Cardputer.begin(cfg, true);
-    M5Cardputer.Display.setRotation(1);
-    M5Cardputer.Display.setTextSize(1.6);
-
-    CFG_WIFI_SSID = "";
-    CFG_WIFI_PASS = "";
-
-    Preferences preferences;
-    preferences.begin("wifi_settings", false);
-    CFG_WIFI_SSID = preferences.getString(NVS_SSID_KEY, "");
-    CFG_WIFI_PASS = preferences.getString(NVS_PASS_KEY, "");
-    preferences.end();
-
-    connectToWiFi();
-}
-*/
 void loop() {
 
-    M5Cardputer.Display.drawString("Pressione 'S' para escanear", 60, 20);
+    M5Cardputer.Display.drawString("'S' para escanear", 10, 110);
    
         M5Cardputer.update();
 
