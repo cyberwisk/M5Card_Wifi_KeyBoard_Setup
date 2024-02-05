@@ -23,37 +23,29 @@ String CFG_WIFI_PASS;
 
 String inputText(const String& prompt, int x, int y) {
     String data = "> ";
-
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextScroll(true);
     M5Cardputer.Display.drawString(prompt, x, y);
-
     while (1) {
         M5Cardputer.update();
-
         if (M5Cardputer.Keyboard.isChange()) {
             if (M5Cardputer.Keyboard.isPressed()) {
                 Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
-
                 for (auto i : status.word) {
                     data += i;
                 }
-
                 if (status.del) {
                     data.remove(data.length() - 1);
                 }
-
                 if (status.enter) {
                     data.remove(0, 2);
                     M5Cardputer.Display.println(data);
                     return data;
                 }
-
                 M5Cardputer.Display.fillRect(0, y - 4, M5Cardputer.Display.width(), 25, BLACK);
                 M5Cardputer.Display.drawString(data, 4, y);
             }
         }
-
         delay(20);
     }
 }
@@ -70,25 +62,21 @@ void displayWiFiInfo() {
 
 void connectToWiFi() {
     WiFi.disconnect();
-    WiFi.softAPdisconnect(true);
     WiFi.begin(CFG_WIFI_SSID.c_str(), CFG_WIFI_PASS.c_str());
 
     int tm = 0;
-    while (tm++ < 60 && WiFi.status() != WL_CONNECTED) {
+    M5Cardputer.Display.print("Conectando:");
+    while (tm++ < 120 && WiFi.status() != WL_CONNECTED) {
         M5Cardputer.Display.print(".");
         delay(100);
-        if (M5Cardputer.Keyboard.isKeyPressed('´')) {
-            break;
-        }
     }
 
     if (WiFi.status() == WL_CONNECTED) {
         displayWiFiInfo();
     } else {      
         M5Cardputer.Display.clear();
-        M5Cardputer.Display.drawString("Configuracao de WiFi", 1, 1);
-        M5Cardputer.Display.drawString("Digite o SSID:", 1, 15);
-        CFG_WIFI_SSID = inputText("> ", 4, M5Cardputer.Display.height() - 24);
+        M5Cardputer.Display.drawString("Procurando WiFi", 1, 1);
+        CFG_WIFI_SSID = scanAndDisplayNetworks();
         M5Cardputer.Display.clear();
         M5Cardputer.Display.drawString("SSID: " + CFG_WIFI_SSID, 1, 15);
         M5Cardputer.Display.drawString("Digite a senha:", 1, 32);
@@ -99,41 +87,53 @@ void connectToWiFi() {
         preferences.putString(NVS_SSID_KEY, CFG_WIFI_SSID);
         preferences.putString(NVS_PASS_KEY, CFG_WIFI_PASS);
         preferences.end();
-
         M5Cardputer.Display.clear();
-        M5Cardputer.Display.drawString("SSID: " + CFG_WIFI_SSID, 1, 15);
-        M5Cardputer.Display.drawString("Senha: " + CFG_WIFI_PASS, 1, 32);
         M5Cardputer.Display.drawString("SSID e Senha gravados.", 1, 60);
         WiFi.begin(CFG_WIFI_SSID.c_str(), CFG_WIFI_PASS.c_str());
+        delay(100);
         displayWiFiInfo();
     }
 }
 
-void scanAndDisplayNetworks() {
-    int numNetworks = WiFi.scanNetworks();
-
+String scanAndDisplayNetworks() {
+   int numNetworks = WiFi.scanNetworks();
     if (numNetworks == 0) {
         M5Cardputer.Display.drawString("Nenhuma rede encontrada.", 1, 15);
+        return "";  // Retorna uma string vazia se nenhuma rede for encontrada
     } else {
         M5Cardputer.Display.clear();
         M5Cardputer.Display.drawString("Redes disponíveis:", 1, 1);
 
-        for (int i = 0; i < numNetworks; ++i) {
-            String ssid = WiFi.SSID(i);
-            M5Cardputer.Display.drawString(ssid, 1, 15 + i * 15);
-        }
-
-        M5Cardputer.Display.drawString("Selecione uma rede.", 1, 15 + numNetworks * 15);
+        int selectedNetwork = 0;  // Variável para rastrear a rede selecionada
 
         while (1) {
+            for (int i = 0; i < 5 && i < numNetworks; ++i) {
+                String ssid = WiFi.SSID(i);
+                if (i == selectedNetwork) {
+                    M5Cardputer.Display.drawString("-> " + ssid, 1, 18 + i * 18);
+                } else {
+                    M5Cardputer.Display.drawString(ssid, 1, 18 + i * 18);
+                }
+            }
+
+            M5Cardputer.Display.drawString("Selecione uma rede.", 1, 15 + numNetworks * 15);
             M5Cardputer.update();
 
             if (M5Cardputer.Keyboard.isChange()) {
                 if (M5Cardputer.Keyboard.isPressed()) {
                     Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
 
+                    if (M5Cardputer.Keyboard.isKeyPressed(';') && selectedNetwork > 0) {
+                        selectedNetwork--;
+                    }
+
+                    if (M5Cardputer.Keyboard.isKeyPressed('.') && selectedNetwork < min(4, numNetworks - 1)) {
+                        selectedNetwork++;
+                    }
+
                     if (status.enter) {
-                        return;
+                        // Retorna o SSID da rede selecionada
+                        return WiFi.SSID(selectedNetwork);
                     }
                 }
             }
@@ -154,33 +154,19 @@ void setup() {
 
     Preferences preferences;
     preferences.begin("wifi_settings", false);
+      if (M5Cardputer.Keyboard.isKeyPressed('m')) {
+          M5Cardputer.Display.print("Limpando Memoria:");
+            delay(20);
+            preferences.clear(); //Apagar memoria
+            return;
+       }
+    //preferences.clear(); //Apagar memoria
     CFG_WIFI_SSID = preferences.getString(NVS_SSID_KEY, "");
     CFG_WIFI_PASS = preferences.getString(NVS_PASS_KEY, "");
     preferences.end();
-
-    WiFi.disconnect();
-    WiFi.softAPdisconnect(true);
     connectToWiFi();
 }
 
 void loop() {
 
-    M5Cardputer.Display.drawString("'S' para escanear", 10, 110);
-   
-        M5Cardputer.update();
-
-        if (M5Cardputer.Keyboard.isChange()) {
-            if (M5Cardputer.Keyboard.isPressed()) {
-                Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
-
-                if (M5Cardputer.Keyboard.isKeyPressed('s')) {
-                    scanAndDisplayNetworks();
-                    M5Cardputer.Display.clear();
-                }
-
-               // break;
-            }
-        }
-
-        delay(20);
     }
