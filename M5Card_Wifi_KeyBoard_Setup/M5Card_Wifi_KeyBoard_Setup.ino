@@ -20,6 +20,7 @@
 
 String CFG_WIFI_SSID;
 String CFG_WIFI_PASS;
+Preferences preferences;
 
 String inputText(const String& prompt, int x, int y) {
     String data = "> ";
@@ -30,6 +31,7 @@ String inputText(const String& prompt, int x, int y) {
         M5Cardputer.update();
         if (M5Cardputer.Keyboard.isChange()) {
             if (M5Cardputer.Keyboard.isPressed()) {
+                M5Cardputer.Speaker.tone(1000, 100);
                 Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
                 for (auto i : status.word) {
                     data += i;
@@ -99,12 +101,12 @@ String scanAndDisplayNetworks() {
    int numNetworks = WiFi.scanNetworks();
     if (numNetworks == 0) {
         M5Cardputer.Display.drawString("Nenhuma rede encontrada.", 1, 15);
-        return "";  // Retorna uma string vazia se nenhuma rede for encontrada
+        return "";
     } else {
         M5Cardputer.Display.clear();
         M5Cardputer.Display.drawString("Redes disponíveis:", 1, 1);
 
-        int selectedNetwork = 0;  // Variável para rastrear a rede selecionada
+        int selectedNetwork = 0;
 
         while (1) {
             for (int i = 0; i < 5 && i < numNetworks; ++i) {
@@ -121,6 +123,7 @@ String scanAndDisplayNetworks() {
 
             if (M5Cardputer.Keyboard.isChange()) {
                 if (M5Cardputer.Keyboard.isPressed()) {
+                    M5Cardputer.Speaker.tone(1000, 100);
                     Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
 
                     if (M5Cardputer.Keyboard.isKeyPressed(';') && selectedNetwork > 0) {
@@ -132,7 +135,6 @@ String scanAndDisplayNetworks() {
                     }
 
                     if (status.enter) {
-                        // Retorna o SSID da rede selecionada
                         return WiFi.SSID(selectedNetwork);
                     }
                 }
@@ -146,20 +148,15 @@ String scanAndDisplayNetworks() {
 void setup() {
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);
+    cfg.external_speaker.hat_spk = true;
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextSize(1.6);
 
     CFG_WIFI_SSID = "";
     CFG_WIFI_PASS = "";
 
-    Preferences preferences;
     preferences.begin("wifi_settings", false);
-      if (M5Cardputer.Keyboard.isKeyPressed('m')) {
-          M5Cardputer.Display.print("Limpando Memoria:");
-            delay(20);
-            preferences.clear(); //Apagar memoria
-            return;
-       }
+    delay(200);
     //preferences.clear(); //Apagar memoria
     CFG_WIFI_SSID = preferences.getString(NVS_SSID_KEY, "");
     CFG_WIFI_PASS = preferences.getString(NVS_PASS_KEY, "");
@@ -168,5 +165,24 @@ void setup() {
 }
 
 void loop() {
+        delay(1000);
+        displayWiFiInfo();
+        M5Cardputer.update();
+        M5Cardputer.Display.drawString("Del Para Apagar.", 1, 100);
+      if (M5Cardputer.Keyboard.isChange()) {
+        if (M5Cardputer.Keyboard.isPressed()) {
+           Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+              if (status.del) {
+                      M5Cardputer.Speaker.tone(1000, 100);
+                      M5Cardputer.Display.drawString("Memoria Apagada.", 1, 60);
+                      Preferences preferences;
+                      preferences.begin("wifi_settings", false);
+                      preferences.clear();  // Apagar memória
+                      preferences.end();
+                      delay(1000);
+                       ESP.restart();
+              }
+        }
+      }
 
     }
