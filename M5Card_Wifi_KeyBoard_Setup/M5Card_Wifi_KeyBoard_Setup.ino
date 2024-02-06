@@ -31,7 +31,7 @@ String inputText(const String& prompt, int x, int y) {
         M5Cardputer.update();
         if (M5Cardputer.Keyboard.isChange()) {
             if (M5Cardputer.Keyboard.isPressed()) {
-                M5Cardputer.Speaker.tone(1000, 100);
+                M5Cardputer.Speaker.tone(4000, 20);
                 Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
                 for (auto i : status.word) {
                     data += i;
@@ -56,10 +56,10 @@ void displayWiFiInfo() {
     M5Cardputer.Display.clear();
     M5Cardputer.Display.setCursor(1, 1);
     M5Cardputer.Display.drawString("WiFi conectada.", 35, 1);
-    M5Cardputer.Display.drawString("SSID: " + WiFi.SSID(), 1, 15);
-    M5Cardputer.Display.drawString("IP: " + WiFi.localIP().toString(), 1, 30);
+    M5Cardputer.Display.drawString("SSID: " + WiFi.SSID(), 1, 18);
+    M5Cardputer.Display.drawString("IP: " + WiFi.localIP().toString(), 1, 33);
     int8_t rssi = WiFi.RSSI();
-    M5Cardputer.Display.drawString("RSSI: " + String(rssi) + " dBm", 1, 45);
+    M5Cardputer.Display.drawString("RSSI: " + String(rssi) + " dBm", 1, 48);
 }
 
 void connectToWiFi() {
@@ -80,8 +80,8 @@ void connectToWiFi() {
         M5Cardputer.Display.drawString("Procurando WiFi", 1, 1);
         CFG_WIFI_SSID = scanAndDisplayNetworks();
         M5Cardputer.Display.clear();
-        M5Cardputer.Display.drawString("SSID: " + CFG_WIFI_SSID, 1, 15);
-        M5Cardputer.Display.drawString("Digite a senha:", 1, 32);
+        M5Cardputer.Display.drawString("SSID: " + CFG_WIFI_SSID, 1, 20);
+        M5Cardputer.Display.drawString("Digite a senha:", 1, 38);
         CFG_WIFI_PASS = inputText("> ", 4, M5Cardputer.Display.height() - 24);
 
         Preferences preferences;
@@ -150,7 +150,10 @@ void setup() {
     M5Cardputer.begin(cfg, true);
     cfg.external_speaker.hat_spk = true;
     M5Cardputer.Display.setRotation(1);
-    M5Cardputer.Display.setTextSize(1.6);
+    M5Cardputer.Display.setTextColor(GREEN, BLACK);
+    //M5Cardputer.Display.setTextFont(&fonts::FreeMono12pt7b);
+    M5Cardputer.Display.setTextFont(&fonts::FreeMonoOblique9pt7b);    
+    //M5Cardputer.Display.setTextSize(1.6);
 
     CFG_WIFI_SSID = "";
     CFG_WIFI_PASS = "";
@@ -173,8 +176,8 @@ void loop() {
         if (M5Cardputer.Keyboard.isPressed()) {
            Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
               if (status.del) {
-                      M5Cardputer.Speaker.tone(1000, 100);
-                      M5Cardputer.Display.drawString("Memoria Apagada.", 1, 60);
+                      M5Cardputer.Speaker.tone(10000, 100);
+                      M5Cardputer.Display.drawString("Memoria Apagada.", 1, 70);
                       Preferences preferences;
                       preferences.begin("wifi_settings", false);
                       preferences.clear();  // Apagar memória
