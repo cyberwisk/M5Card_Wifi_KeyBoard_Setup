@@ -10,7 +10,7 @@ Objetivo é montar uma lib que possa ser usada em qualquer programa feito para o
 
 30/01/2024
 
-<img src="https://github.com/cyberwisk/M5Card_Wifi_KeyBoard_Setup/assets/3136312/ec5c9b5a-002d-45fe-8377-54e20862fccf" width="250">
+<img src="https://github.com/cyberwisk/M5Card_Wifi_KeyBoard_Setup/assets/3136312/7dcc63ae-1b88-44c8-9fe9-56e38cae7d32" width="250">
 
 
 ***# Funções básicas:***
