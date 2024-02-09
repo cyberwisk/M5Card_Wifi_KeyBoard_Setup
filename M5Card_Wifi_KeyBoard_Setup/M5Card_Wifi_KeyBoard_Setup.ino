@@ -118,7 +118,7 @@ String scanAndDisplayNetworks() {
                 }
             }
 
-            M5Cardputer.Display.drawString("Selecione uma rede.", 1, 15 + numNetworks * 15);
+            M5Cardputer.Display.drawString("Selecione uma rede.", 1, 108); // + numNetworks * 18);
             M5Cardputer.update();
 
             if (M5Cardputer.Keyboard.isChange()) {
