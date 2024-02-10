@@ -63,14 +63,37 @@ void displayWiFiInfo() {
 }
 
 void connectToWiFi() {
+    CFG_WIFI_SSID = "";
+    CFG_WIFI_PASS = "";
+
+    preferences.begin("wifi_settings", false);
+    delay(200);
+    CFG_WIFI_SSID = preferences.getString(NVS_SSID_KEY, "");
+    CFG_WIFI_PASS = preferences.getString(NVS_PASS_KEY, "");
+    preferences.end();
     WiFi.disconnect();
     WiFi.begin(CFG_WIFI_SSID.c_str(), CFG_WIFI_PASS.c_str());
 
     int tm = 0;
-    M5Cardputer.Display.print("Conectando:");
-    while (tm++ < 120 && WiFi.status() != WL_CONNECTED) {
-        M5Cardputer.Display.print(".");
-        delay(100);
+    M5Cardputer.Display.print("Conectando :");
+    while (tm++ < 110 && WiFi.status() != WL_CONNECTED) {
+        M5Cardputer.update();
+        M5Cardputer.Display.drawString("BtnG0 Apaga as Configs.", 1, 108);
+        if (M5Cardputer.BtnA.isPressed()){
+                M5Cardputer.Speaker.tone(7000, 1000);
+                Preferences preferences;
+                preferences.begin("wifi_settings", false);
+                preferences.clear();
+                preferences.end();
+                M5Cardputer.Display.clear();
+                M5Cardputer.Display.drawString("Memoria apagada.", 1, 60);
+                delay(1000);
+                ESP.restart();
+                return;
+         } else {
+          delay(100);
+          M5Cardputer.Display.print(".");
+         }
     }
 
     if (WiFi.status() == WL_CONNECTED) {
@@ -104,42 +127,35 @@ String scanAndDisplayNetworks() {
         return "";
     } else {
         M5Cardputer.Display.clear();
-        M5Cardputer.Display.drawString("Redes disponíveis:", 1, 1);
-
+        M5Cardputer.Display.drawString("Redes disponiveis:", 1, 1);
         int selectedNetwork = 0;
-
         while (1) {
             for (int i = 0; i < 5 && i < numNetworks; ++i) {
                 String ssid = WiFi.SSID(i);
                 if (i == selectedNetwork) {
                     M5Cardputer.Display.drawString("-> " + ssid, 1, 18 + i * 18);
                 } else {
-                    M5Cardputer.Display.drawString(ssid, 1, 18 + i * 18);
+                    M5Cardputer.Display.drawString(ssid + "    ", 1, 18 + i * 18);
                 }
             }
-
-            M5Cardputer.Display.drawString("Selecione uma rede.", 1, 108); // + numNetworks * 18);
+            M5Cardputer.Display.drawString("Selecione uma rede.", 1, 108);
             M5Cardputer.update();
-
             if (M5Cardputer.Keyboard.isChange()) {
                 if (M5Cardputer.Keyboard.isPressed()) {
-                    M5Cardputer.Speaker.tone(1000, 100);
+                    M5Cardputer.Speaker.tone(3000, 20);
                     Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
 
                     if (M5Cardputer.Keyboard.isKeyPressed(';') && selectedNetwork > 0) {
                         selectedNetwork--;
                     }
-
                     if (M5Cardputer.Keyboard.isKeyPressed('.') && selectedNetwork < min(4, numNetworks - 1)) {
                         selectedNetwork++;
                     }
-
                     if (status.enter) {
                         return WiFi.SSID(selectedNetwork);
                     }
                 }
             }
-
             delay(20);
         }
     }
@@ -153,28 +169,21 @@ void setup() {
     M5Cardputer.Display.setTextColor(GREEN, BLACK);
     //M5Cardputer.Display.setTextFont(&fonts::FreeMono12pt7b);
     M5Cardputer.Display.setTextFont(&fonts::FreeMonoOblique9pt7b);    
-    //M5Cardputer.Display.setTextSize(1.6);
 
-    CFG_WIFI_SSID = "";
-    CFG_WIFI_PASS = "";
-
-    preferences.begin("wifi_settings", false);
-    delay(200);
-    //preferences.clear(); //Apagar memoria
-    CFG_WIFI_SSID = preferences.getString(NVS_SSID_KEY, "");
-    CFG_WIFI_PASS = preferences.getString(NVS_PASS_KEY, "");
-    preferences.end();
     connectToWiFi();
 }
 
 void loop() {
-        delay(1000);
+    delay(1000);
+    M5Cardputer.update();
+    if (WiFi.status() == WL_CONNECTED) {
         displayWiFiInfo();
-        M5Cardputer.update();
+    } else { 
+        connectToWiFi();
+    }
         M5Cardputer.Display.drawString("Del Para Apagar.", 1, 100);
-      if (M5Cardputer.Keyboard.isChange()) {
-        if (M5Cardputer.Keyboard.isPressed()) {
-           Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+      if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+          Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
               if (status.del) {
                       M5Cardputer.Speaker.tone(10000, 100);
                       M5Cardputer.Display.drawString("Memoria Apagada.", 1, 70);
@@ -185,7 +194,5 @@ void loop() {
                       delay(1000);
                        ESP.restart();
               }
-        }
       }
-
-    }
+}
