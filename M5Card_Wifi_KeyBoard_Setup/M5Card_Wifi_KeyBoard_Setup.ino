@@ -164,7 +164,6 @@ String scanAndDisplayNetworks() {
 void setup() {
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);
-    cfg.external_speaker.hat_spk = true;
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextColor(GREEN, BLACK);
     //M5Cardputer.Display.setTextFont(&fonts::FreeMono12pt7b);
